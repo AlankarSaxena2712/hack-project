@@ -1,17 +1,13 @@
-import numpy as np
 import pandas as pd
-import itertools
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import PassiveAggressiveClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from guardians.serializers import IndexSerializer
-from services.status import check
 from services.summarizer import generate_summary
 
 
@@ -19,11 +15,18 @@ class IndexApi(APIView):
     def post(self, request, *args, **kwargs):
         serializer = IndexSerializer(data=request.data)
         if serializer.is_valid():
-            summary = generate_summary(request.data['content'])
-            imp = check(request.data['content'])
-            ans = {}
-            ans["status"] = imp[0]
-            ans["summary"] = summary
+            if (len(request.data['content'])<20):
+                summary = generate_summary(request.data['content'],2)
+                imp = check(request.data['content'])
+                ans = {}
+                ans["status"] = imp[0]
+                ans["summary"] = summary
+            else:
+                summary = generate_summary(request.data['content'], 2)
+                imp = check(request.data['content'])
+                ans = {}
+                ans["status"] = imp[0]
+                ans["summary"] = summary
             return Response(ans, status=status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
